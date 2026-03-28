@@ -69,10 +69,12 @@ TRENDS = [
 
 TREND_LOOKUP = {t["name"]: t for t in TRENDS}
 
-# Meharry palette
-NAVY = "#00205B"
-GOLD = "#C8A951"
-GOLD_LIGHT = "#ffe08a"
+# Meharry Medical College official palette
+MAROON = "#6A173B"
+MAROON_DARK = "#3B1526"
+MAROON_DEEP = "#270E19"
+GOLD = "#FFE293"
+GOLD_LIGHT = "#FFF0C2"
 WHITE = "#FFFFFF"
 
 # ---------------------------------------------------------------------------
@@ -114,69 +116,69 @@ def format_views(n: int) -> str:
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;900&family=Nunito:wght@400;700&display=swap');
 
-    html, body, [class*="stApp"] { font-family: 'Poppins', sans-serif; }
+    html, body, [class*="stApp"] { font-family: 'Nunito Sans', sans-serif; }
     .stApp {
-        background: linear-gradient(135deg, #00205B 0%, #001440 60%, #0a0a2e 100%);
+        background: linear-gradient(135deg, #6A173B 0%, #3B1526 60%, #270E19 100%);
     }
 
     /* hero */
     .hero { text-align: center; padding: 2.5rem 1rem 1rem; }
     .hero h1 {
         font-size: 3rem; font-weight: 900;
-        background: linear-gradient(90deg, #C8A951, #ffe08a, #C8A951);
+        background: linear-gradient(90deg, #FFE293, #FFF0C2, #FFE293);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         margin-bottom: 0; letter-spacing: -0.5px;
     }
     .hero .subtitle { color: #ffffffcc; font-size: 1.15rem; margin-top: 0.25rem; }
-    .hero .hosted  { color: #C8A951; font-weight: 600; font-size: 0.95rem; margin-top: 0.3rem; }
+    .hero .hosted  { color: #FFE293; font-weight: 600; font-size: 0.95rem; margin-top: 0.3rem; }
     .hero .hashtags {
-        color: #ffe08a; font-weight: 800; font-size: 1.3rem;
+        color: #FFF0C2; font-weight: 800; font-size: 1.3rem;
         margin-top: 0.6rem; letter-spacing: 1px;
-        text-shadow: 0 0 20px rgba(200,169,81,0.3);
+        text-shadow: 0 0 20px rgba(255,226,147,0.3);
     }
     .divider {
         width: 120px; height: 3px;
-        background: linear-gradient(90deg, transparent, #C8A951, transparent);
+        background: linear-gradient(90deg, transparent, #FFE293, transparent);
         margin: 1rem auto 2rem; border-radius: 2px;
     }
 
     /* trend cards */
     .trend-card {
         background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(200,169,81,0.25);
+        border: 1px solid rgba(255,226,147,0.25);
         border-radius: 20px; padding: 1.8rem 1.2rem;
         text-align: center; transition: transform 0.2s, box-shadow 0.2s;
         backdrop-filter: blur(6px);
     }
     .trend-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 30px rgba(200,169,81,0.18);
+        box-shadow: 0 8px 30px rgba(255,226,147,0.18);
     }
     .trend-card .trend-emoji { font-size: 2.5rem; }
-    .trend-card .trend-name  { font-size: 1.4rem; font-weight: 700; color: #C8A951; margin: 0.4rem 0 0.2rem; }
+    .trend-card .trend-name  { font-size: 1.4rem; font-weight: 700; color: #FFE293; margin: 0.4rem 0 0.2rem; }
     .trend-card .trend-desc  { color: #ffffffbb; font-size: 0.92rem; line-height: 1.45; }
     .trend-card img.qr {
         width: 160px; height: 160px; margin: 1rem auto 0;
-        border-radius: 12px; border: 2px solid #C8A951;
+        border-radius: 12px; border: 2px solid #FFE293;
         background: #fff; padding: 6px;
     }
     .trend-card .watch-link {
         display: inline-block; margin-top: 0.7rem;
-        color: #ffe08a; font-weight: 700; font-size: 0.95rem;
+        color: #FFF0C2; font-weight: 700; font-size: 0.95rem;
         text-decoration: none; padding: 0.35rem 1rem;
-        border: 2px solid #C8A951; border-radius: 50px;
+        border: 2px solid #FFE293; border-radius: 50px;
         transition: background 0.2s, color 0.2s;
     }
     .trend-card .watch-link:hover {
-        background: #C8A951; color: #00205B;
+        background: #FFE293; color: #6A173B;
     }
 
     /* buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #C8A951, #ffe08a) !important;
-        color: #00205B !important; font-weight: 700 !important;
+        background: linear-gradient(135deg, #FFE293, #FFF0C2) !important;
+        color: #6A173B !important; font-weight: 700 !important;
         font-size: 1.05rem !important; border: none !important;
         border-radius: 50px !important; padding: 0.6rem 2rem !important;
         width: 100% !important; cursor: pointer !important;
@@ -185,7 +187,7 @@ st.markdown(
     }
     .stButton > button:hover {
         transform: scale(1.04) !important;
-        box-shadow: 0 4px 20px rgba(200,169,81,0.45) !important;
+        box-shadow: 0 4px 20px rgba(255,226,147,0.45) !important;
     }
 
     /* result bars */
@@ -197,16 +199,16 @@ st.markdown(
     }
     .result-bar-fill {
         height: 100%; border-radius: 12px;
-        background: linear-gradient(90deg, #C8A951, #ffe08a);
+        background: linear-gradient(90deg, #FFE293, #FFF0C2);
         display: flex; align-items: center; padding-left: 14px;
-        font-weight: 700; font-size: 0.9rem; color: #00205B;
+        font-weight: 700; font-size: 0.9rem; color: #6A173B;
         transition: width 0.6s ease; min-width: 40px;
     }
 
     /* toast */
     .vote-toast {
-        background: linear-gradient(135deg, #C8A951, #ffe08a);
-        color: #00205B; padding: 1rem 1.5rem; border-radius: 14px;
+        background: linear-gradient(135deg, #FFE293, #FFF0C2);
+        color: #6A173B; padding: 1rem 1.5rem; border-radius: 14px;
         text-align: center; font-weight: 700; font-size: 1.1rem;
         margin: 1rem auto; max-width: 500px;
         animation: popIn 0.35s ease;
@@ -215,7 +217,7 @@ st.markdown(
 
     /* section headers */
     .section-head {
-        text-align: center; color: #C8A951; font-weight: 800;
+        text-align: center; color: #FFE293; font-weight: 800;
         font-size: 1.8rem; margin-bottom: 0.3rem;
     }
 
@@ -226,12 +228,12 @@ st.markdown(
 
     /* score card */
     .score-card {
-        background: rgba(255,255,255,0.08); border: 2px solid #C8A951;
+        background: rgba(255,255,255,0.08); border: 2px solid #FFE293;
         border-radius: 20px; padding: 2rem; text-align: center;
         max-width: 480px; margin: 1.5rem auto;
     }
     .score-card .big-number {
-        font-size: 4rem; font-weight: 900; color: #C8A951; line-height: 1;
+        font-size: 4rem; font-weight: 900; color: #FFE293; line-height: 1;
     }
     .score-card .score-label {
         color: #ffffffcc; font-size: 1.1rem; margin-top: 0.3rem;
@@ -239,7 +241,7 @@ st.markdown(
 
     /* footer */
     .footer { text-align: center; color: #ffffff55; font-size: 0.8rem; padding: 3rem 0 1.5rem; }
-    .footer a { color: #C8A951; text-decoration: none; }
+    .footer a { color: #FFE293; text-decoration: none; }
 
     #MainMenu, footer, header { visibility: hidden; }
     </style>
@@ -410,7 +412,7 @@ if st.session_state.revealed:
 
     fig_bump = go.Figure()
 
-    colors = ["#C8A951", "#ffe08a", "#4ade80", "#60a5fa", "#f472b6"]
+    colors = ["#FFE293", "#FFF0C2", "#4ade80", "#60a5fa", "#f472b6"]
 
     for idx, trend in enumerate(TRENDS):
         pred = predicted_ranks[trend["name"]]
@@ -425,7 +427,7 @@ if st.session_state.revealed:
             name=label,
             text=[label, label],
             textposition=["middle left", "middle right"],
-            textfont=dict(size=13, color=color, family="Poppins"),
+            textfont=dict(size=13, color=color, family="Nunito Sans"),
             line=dict(color=color, width=3),
             marker=dict(size=14, color=color, line=dict(width=2, color=WHITE)),
             hovertemplate=(
@@ -445,17 +447,17 @@ if st.session_state.revealed:
             title_font=dict(color=GOLD),
         ),
         xaxis=dict(
-            color=WHITE, tickfont=dict(size=15, color=GOLD, family="Poppins"),
+            color=WHITE, tickfont=dict(size=15, color=GOLD, family="Nunito Sans"),
             fixedrange=True,
         ),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Poppins", color=WHITE),
+        font=dict(family="Nunito Sans", color=WHITE),
         showlegend=False,
         height=420,
         margin=dict(l=140, r=140, t=20, b=30),
         hoverlabel=dict(
-            bgcolor=NAVY, font_color=GOLD, font_size=13,
+            bgcolor=MAROON, font_color=GOLD, font_size=13,
             bordercolor=GOLD,
         ),
     )
@@ -489,7 +491,7 @@ if st.session_state.revealed:
         marker=dict(color=GOLD, cornerradius=6),
         text=[f"{v:.0f}%" for v in vote_pcts],
         textposition="auto",
-        textfont=dict(color=NAVY, size=13, family="Poppins"),
+        textfont=dict(color=MAROON, size=13, family="Nunito Sans"),
         hovertemplate="<b>%{y}</b><br>Our vote share: %{x:.1f}%<extra></extra>",
     ))
 
@@ -499,7 +501,7 @@ if st.session_state.revealed:
         marker=dict(color="#60a5fa", cornerradius=6),
         text=[f"{v:.0f}%" for v in actual_pcts],
         textposition="auto",
-        textfont=dict(color=NAVY, size=13, family="Poppins"),
+        textfont=dict(color=MAROON, size=13, family="Nunito Sans"),
         hovertemplate=(
             "<b>%{y}</b><br>"
             "Actual view share: %{x:.1f}%<br>"
@@ -513,7 +515,7 @@ if st.session_state.revealed:
         barmode="group",
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Poppins", color=WHITE),
+        font=dict(family="Nunito Sans", color=WHITE),
         legend=dict(
             orientation="h", yanchor="bottom", y=1.02,
             xanchor="center", x=0.5,
@@ -527,7 +529,7 @@ if st.session_state.revealed:
         yaxis=dict(color=WHITE, tickfont=dict(size=13)),
         height=380,
         margin=dict(l=10, r=30, t=40, b=40),
-        hoverlabel=dict(bgcolor=NAVY, font_color=GOLD, font_size=13, bordercolor=GOLD),
+        hoverlabel=dict(bgcolor=MAROON, font_color=GOLD, font_size=13, bordercolor=GOLD),
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -549,7 +551,7 @@ if st.session_state.revealed:
         fig_lollipop.add_trace(go.Scatter(
             x=[0, views], y=[name, name],
             mode="lines",
-            line=dict(color="rgba(200,169,81,0.4)", width=3),
+            line=dict(color="rgba(255,226,147,0.4)", width=3),
             showlegend=False, hoverinfo="skip",
         ))
 
@@ -560,7 +562,7 @@ if st.session_state.revealed:
         marker=dict(size=18, color=GOLD, line=dict(width=2, color=WHITE)),
         text=[format_views(v) for v in lollipop_views],
         textposition="middle right",
-        textfont=dict(size=14, color=GOLD_LIGHT, family="Poppins"),
+        textfont=dict(size=14, color=GOLD_LIGHT, family="Nunito Sans"),
         showlegend=False,
         hovertemplate="<b>%{y}</b><br>Views: %{x:,.0f}<extra></extra>",
     ))
@@ -568,7 +570,7 @@ if st.session_state.revealed:
     fig_lollipop.update_layout(
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Poppins", color=WHITE),
+        font=dict(family="Nunito Sans", color=WHITE),
         xaxis=dict(
             title="Total Views", color=WHITE,
             gridcolor="rgba(255,255,255,0.08)",
@@ -577,7 +579,7 @@ if st.session_state.revealed:
         yaxis=dict(color=WHITE, tickfont=dict(size=14), autorange="reversed"),
         height=350,
         margin=dict(l=10, r=80, t=10, b=40),
-        hoverlabel=dict(bgcolor=NAVY, font_color=GOLD, font_size=13, bordercolor=GOLD),
+        hoverlabel=dict(bgcolor=MAROON, font_color=GOLD, font_size=13, bordercolor=GOLD),
     )
     st.plotly_chart(fig_lollipop, use_container_width=True)
 
