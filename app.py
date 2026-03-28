@@ -1,7 +1,7 @@
 import streamlit as st
 import json
-import os
 import base64
+import plotly.graph_objects as go
 from pathlib import Path
 from datetime import datetime
 
@@ -16,38 +16,59 @@ st.set_page_config(
 
 VOTES_FILE = Path(__file__).parent / "votes.json"
 
+# ---- Trend data -----------------------------------------------------------
+# actual_views: real-world view counts (update these with the real numbers!)
+# actual_rank: 1 = most viral
 TRENDS = [
     {
         "name": "Amapiano",
         "emoji": "🎶",
         "image": "Ampiano_09_04_32.png",
         "description": "The South-African born Amapiano dance trend took over every timeline!",
+        "actual_views": 2_800_000_000,
+        "actual_rank": 1,
     },
     {
         "name": "Marching Band",
         "emoji": "🥁",
         "image": "Marching Band_09_04_24.png",
         "description": "HBCU marching bands showed out and the internet couldn't stop watching!",
+        "actual_views": 890_000_000,
+        "actual_rank": 3,
     },
     {
         "name": "Step Team",
         "emoji": "👢",
         "image": "Step Team_09_04_28.png",
         "description": "Precision stepping went viral — stomp, clap, repeat!",
+        "actual_views": 650_000_000,
+        "actual_rank": 4,
     },
     {
         "name": "Trombone Solo",
         "emoji": "🎺",
         "image": "Trombone Solo_09_04_16.png",
         "description": "One trombone, millions of views. Brass never sounded so cool!",
+        "actual_views": 420_000_000,
+        "actual_rank": 5,
     },
     {
         "name": "Wash Day",
         "emoji": "💆🏾‍♀️",
         "image": "Wash Day_09_04_19.png",
         "description": "Wash-day routines became the most relatable trend on social media!",
+        "actual_views": 1_200_000_000,
+        "actual_rank": 2,
     },
 ]
+
+TREND_LOOKUP = {t["name"]: t for t in TRENDS}
+
+# Meharry palette
+NAVY = "#00205B"
+GOLD = "#C8A951"
+GOLD_LIGHT = "#ffe08a"
+WHITE = "#FFFFFF"
 
 # ---------------------------------------------------------------------------
 # Persistence helpers
@@ -71,9 +92,18 @@ def img_to_base64(path: str) -> str:
         return base64.b64encode(f.read()).decode()
 
 
+def format_views(n: int) -> str:
+    if n >= 1_000_000_000:
+        return f"{n / 1_000_000_000:.1f}B"
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.0f}M"
+    if n >= 1_000:
+        return f"{n / 1_000:.0f}K"
+    return str(n)
+
+
 # ---------------------------------------------------------------------------
 # Custom CSS — Meharry Medical College palette
-# Navy #00205B  |  Gold #C8A951  |  White #FFFFFF
 # ---------------------------------------------------------------------------
 
 st.markdown(
@@ -81,164 +111,116 @@ st.markdown(
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
 
-    /* ---------- global ---------- */
-    html, body, [class*="stApp"] {
-        font-family: 'Poppins', sans-serif;
-    }
+    html, body, [class*="stApp"] { font-family: 'Poppins', sans-serif; }
     .stApp {
         background: linear-gradient(135deg, #00205B 0%, #001440 60%, #0a0a2e 100%);
     }
 
-    /* ---------- hero ---------- */
-    .hero {
-        text-align: center;
-        padding: 2.5rem 1rem 1rem;
-    }
+    /* hero */
+    .hero { text-align: center; padding: 2.5rem 1rem 1rem; }
     .hero h1 {
-        font-size: 3rem;
-        font-weight: 900;
-        background: linear-gradient(90deg, #C8A951 0%, #ffe08a 50%, #C8A951 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0;
-        letter-spacing: -0.5px;
+        font-size: 3rem; font-weight: 900;
+        background: linear-gradient(90deg, #C8A951, #ffe08a, #C8A951);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 0; letter-spacing: -0.5px;
     }
-    .hero .subtitle {
-        color: #ffffffcc;
-        font-size: 1.15rem;
-        margin-top: 0.25rem;
-    }
-    .hero .hosted {
-        color: #C8A951;
-        font-weight: 600;
-        font-size: 0.95rem;
-        margin-top: 0.3rem;
-    }
+    .hero .subtitle { color: #ffffffcc; font-size: 1.15rem; margin-top: 0.25rem; }
+    .hero .hosted  { color: #C8A951; font-weight: 600; font-size: 0.95rem; margin-top: 0.3rem; }
     .divider {
-        width: 120px;
-        height: 3px;
+        width: 120px; height: 3px;
         background: linear-gradient(90deg, transparent, #C8A951, transparent);
-        margin: 1rem auto 2rem;
-        border-radius: 2px;
+        margin: 1rem auto 2rem; border-radius: 2px;
     }
 
-    /* ---------- trend cards ---------- */
+    /* trend cards */
     .trend-card {
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(200,169,81,0.25);
-        border-radius: 20px;
-        padding: 1.8rem 1.2rem;
-        text-align: center;
-        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 20px; padding: 1.8rem 1.2rem;
+        text-align: center; transition: transform 0.2s, box-shadow 0.2s;
         backdrop-filter: blur(6px);
     }
     .trend-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 8px 30px rgba(200,169,81,0.18);
     }
-    .trend-card .trend-emoji {
-        font-size: 2.5rem;
-    }
-    .trend-card .trend-name {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #C8A951;
-        margin: 0.4rem 0 0.2rem;
-    }
-    .trend-card .trend-desc {
-        color: #ffffffbb;
-        font-size: 0.92rem;
-        line-height: 1.45;
-    }
+    .trend-card .trend-emoji { font-size: 2.5rem; }
+    .trend-card .trend-name  { font-size: 1.4rem; font-weight: 700; color: #C8A951; margin: 0.4rem 0 0.2rem; }
+    .trend-card .trend-desc  { color: #ffffffbb; font-size: 0.92rem; line-height: 1.45; }
     .trend-card img.qr {
-        width: 160px;
-        height: 160px;
-        margin: 1rem auto 0;
-        border-radius: 12px;
-        border: 2px solid #C8A951;
-        background: #fff;
-        padding: 6px;
+        width: 160px; height: 160px; margin: 1rem auto 0;
+        border-radius: 12px; border: 2px solid #C8A951;
+        background: #fff; padding: 6px;
     }
 
-    /* ---------- vote button ---------- */
+    /* buttons */
     .stButton > button {
         background: linear-gradient(135deg, #C8A951, #ffe08a) !important;
-        color: #00205B !important;
-        font-weight: 700 !important;
-        font-size: 1.05rem !important;
-        border: none !important;
-        border-radius: 50px !important;
-        padding: 0.6rem 2rem !important;
-        width: 100% !important;
-        cursor: pointer !important;
+        color: #00205B !important; font-weight: 700 !important;
+        font-size: 1.05rem !important; border: none !important;
+        border-radius: 50px !important; padding: 0.6rem 2rem !important;
+        width: 100% !important; cursor: pointer !important;
         transition: transform 0.15s, box-shadow 0.15s !important;
-        letter-spacing: 0.3px !important;
-        margin-top: 0.8rem !important;
+        letter-spacing: 0.3px !important; margin-top: 0.8rem !important;
     }
     .stButton > button:hover {
         transform: scale(1.04) !important;
         box-shadow: 0 4px 20px rgba(200,169,81,0.45) !important;
     }
 
-    /* ---------- results bar ---------- */
-    .result-bar-wrapper {
-        margin: 0.5rem 0;
-    }
-    .result-label {
-        color: #ffffffdd;
-        font-weight: 600;
-        font-size: 1rem;
-        margin-bottom: 0.2rem;
-    }
+    /* result bars */
+    .result-bar-wrapper { margin: 0.5rem 0; }
+    .result-label { color: #ffffffdd; font-weight: 600; font-size: 1rem; margin-bottom: 0.2rem; }
     .result-bar-bg {
-        background: rgba(255,255,255,0.1);
-        border-radius: 12px;
-        overflow: hidden;
-        height: 36px;
-        position: relative;
+        background: rgba(255,255,255,0.1); border-radius: 12px;
+        overflow: hidden; height: 36px; position: relative;
     }
     .result-bar-fill {
-        height: 100%;
-        border-radius: 12px;
+        height: 100%; border-radius: 12px;
         background: linear-gradient(90deg, #C8A951, #ffe08a);
-        display: flex;
-        align-items: center;
-        padding-left: 14px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        color: #00205B;
-        transition: width 0.6s ease;
-        min-width: 40px;
+        display: flex; align-items: center; padding-left: 14px;
+        font-weight: 700; font-size: 0.9rem; color: #00205B;
+        transition: width 0.6s ease; min-width: 40px;
     }
 
-    /* ---------- success toast ---------- */
+    /* toast */
     .vote-toast {
         background: linear-gradient(135deg, #C8A951, #ffe08a);
-        color: #00205B;
-        padding: 1rem 1.5rem;
-        border-radius: 14px;
-        text-align: center;
-        font-weight: 700;
-        font-size: 1.1rem;
-        margin: 1rem auto;
-        max-width: 500px;
+        color: #00205B; padding: 1rem 1.5rem; border-radius: 14px;
+        text-align: center; font-weight: 700; font-size: 1.1rem;
+        margin: 1rem auto; max-width: 500px;
         animation: popIn 0.35s ease;
     }
-    @keyframes popIn {
-        0%   { transform: scale(0.8); opacity: 0; }
-        100% { transform: scale(1);   opacity: 1; }
+    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* section headers */
+    .section-head {
+        text-align: center; color: #C8A951; font-weight: 800;
+        font-size: 1.8rem; margin-bottom: 0.3rem;
     }
 
-    /* ---------- footer ---------- */
-    .footer {
-        text-align: center;
-        color: #ffffff55;
-        font-size: 0.8rem;
-        padding: 3rem 0 1.5rem;
+    /* match badges */
+    .match-perfect { color: #4ade80; font-weight: 700; }
+    .match-close   { color: #fbbf24; font-weight: 700; }
+    .match-off     { color: #f87171; font-weight: 700; }
+
+    /* score card */
+    .score-card {
+        background: rgba(255,255,255,0.08); border: 2px solid #C8A951;
+        border-radius: 20px; padding: 2rem; text-align: center;
+        max-width: 480px; margin: 1.5rem auto;
     }
+    .score-card .big-number {
+        font-size: 4rem; font-weight: 900; color: #C8A951; line-height: 1;
+    }
+    .score-card .score-label {
+        color: #ffffffcc; font-size: 1.1rem; margin-top: 0.3rem;
+    }
+
+    /* footer */
+    .footer { text-align: center; color: #ffffff55; font-size: 0.8rem; padding: 3rem 0 1.5rem; }
     .footer a { color: #C8A951; text-decoration: none; }
 
-    /* hide default Streamlit chrome */
     #MainMenu, footer, header { visibility: hidden; }
     </style>
     """,
@@ -269,13 +251,14 @@ if "voted" not in st.session_state:
     st.session_state.voted = False
 if "voted_for" not in st.session_state:
     st.session_state.voted_for = None
+if "revealed" not in st.session_state:
+    st.session_state.revealed = False
 
 # ---------------------------------------------------------------------------
-# Trend voting cards  (one row of 5 columns, or wrapping on mobile)
+# Trend voting cards
 # ---------------------------------------------------------------------------
 
 votes = load_votes()
-
 cols = st.columns(len(TRENDS), gap="large")
 
 for col, trend in zip(cols, TRENDS):
@@ -303,35 +286,28 @@ for col, trend in zip(cols, TRENDS):
             st.session_state.voted_for = trend["name"]
             st.rerun()
 
-# ---------------------------------------------------------------------------
 # Vote confirmation
-# ---------------------------------------------------------------------------
-
 if st.session_state.voted:
     st.markdown(
-        f'<div class="vote-toast">You voted for {st.session_state.voted_for}! Thanks for making your voice heard! 🎉</div>',
+        f'<div class="vote-toast">You voted for {st.session_state.voted_for}! '
+        f'Thanks for making your voice heard! 🎉</div>',
         unsafe_allow_html=True,
     )
 
-# ---------------------------------------------------------------------------
-# Live Results
-# ---------------------------------------------------------------------------
+# =====================================================================
+# SECTION 1 — How We Voted (always visible)
+# =====================================================================
 
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown(
-    '<h2 style="text-align:center;color:#C8A951;font-weight:800;margin-bottom:0.5rem;">Live Results</h2>',
-    unsafe_allow_html=True,
-)
+st.markdown('<div class="section-head">How We Voted</div>', unsafe_allow_html=True)
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-total = max(sum(votes.values()), 1)  # avoid div-by-zero
+total_votes = max(sum(votes.values()), 1)
+ranked_by_votes = sorted(TRENDS, key=lambda t: votes.get(t["name"], 0), reverse=True)
 
-# Sort by votes descending
-ranked = sorted(TRENDS, key=lambda t: votes.get(t["name"], 0), reverse=True)
-
-for i, trend in enumerate(ranked):
+for i, trend in enumerate(ranked_by_votes):
     count = votes.get(trend["name"], 0)
-    pct = count / total * 100
+    pct = count / total_votes * 100
     rank_label = "👑 " if i == 0 and count > 0 else ""
     st.markdown(
         f"""
@@ -346,6 +322,275 @@ for i, trend in enumerate(ranked):
         """,
         unsafe_allow_html=True,
     )
+
+# =====================================================================
+# SECTION 2 — Reveal the Real Rankings
+# =====================================================================
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+
+# Center the reveal button
+_, btn_col, _ = st.columns([1, 2, 1])
+with btn_col:
+    if st.button(
+        "🔓  Reveal the Real Rankings!" if not st.session_state.revealed else "🔓  Rankings Revealed!",
+        key="reveal_btn",
+        disabled=st.session_state.revealed and True,  # keep clickable only once
+    ):
+        st.session_state.revealed = True
+        st.rerun()
+
+if st.session_state.revealed:
+
+    # -- Predicted ranks from votes --
+    sorted_by_votes = sorted(TRENDS, key=lambda t: votes.get(t["name"], 0), reverse=True)
+    predicted_ranks = {}
+    for i, t in enumerate(sorted_by_votes):
+        predicted_ranks[t["name"]] = i + 1
+
+    # -- Accuracy score --
+    exact_matches = sum(
+        1 for t in TRENDS if predicted_ranks[t["name"]] == t["actual_rank"]
+    )
+    accuracy_pct = exact_matches / len(TRENDS) * 100
+
+    # ---- Score card ----
+    if accuracy_pct == 100:
+        verdict = "PERFECT SCORE — y'all really know your trends! 🏆"
+    elif accuracy_pct >= 60:
+        verdict = "So close! Y'all have great instincts! 🔥"
+    elif accuracy_pct >= 40:
+        verdict = "Not bad — some of these were tricky! 💡"
+    else:
+        verdict = "The internet is full of surprises! 🤯"
+
+    st.markdown(
+        f"""
+        <div class="score-card">
+            <div class="big-number">{exact_matches}/{len(TRENDS)}</div>
+            <div class="score-label">Trends ranked correctly</div>
+            <div style="color:#ffffffbb; margin-top:0.8rem; font-size:1.15rem;">{verdict}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ================================================================
+    # Chart 1 — Bump / Slope chart: Our Ranking vs. Actual Ranking
+    # ================================================================
+
+    st.markdown('<div class="section-head">Our Ranking vs. Reality</div>', unsafe_allow_html=True)
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    fig_bump = go.Figure()
+
+    colors = ["#C8A951", "#ffe08a", "#4ade80", "#60a5fa", "#f472b6"]
+
+    for idx, trend in enumerate(TRENDS):
+        pred = predicted_ranks[trend["name"]]
+        actual = trend["actual_rank"]
+        color = colors[idx % len(colors)]
+        label = f'{trend["emoji"]} {trend["name"]}'
+
+        fig_bump.add_trace(go.Scatter(
+            x=["Our Ranking", "Actual Ranking"],
+            y=[pred, actual],
+            mode="lines+markers+text",
+            name=label,
+            text=[label, label],
+            textposition=["middle left", "middle right"],
+            textfont=dict(size=13, color=color, family="Poppins"),
+            line=dict(color=color, width=3),
+            marker=dict(size=14, color=color, line=dict(width=2, color=WHITE)),
+            hovertemplate=(
+                f"<b>{trend['name']}</b><br>"
+                f"Our rank: #{pred}<br>"
+                f"Actual rank: #{actual}<br>"
+                f"Real views: {format_views(trend['actual_views'])}"
+                "<extra></extra>"
+            ),
+        ))
+
+    fig_bump.update_layout(
+        yaxis=dict(
+            title="Rank", autorange="reversed", dtick=1,
+            range=[0.5, len(TRENDS) + 0.5],
+            gridcolor="rgba(255,255,255,0.08)", color=WHITE,
+            title_font=dict(color=GOLD),
+        ),
+        xaxis=dict(
+            color=WHITE, tickfont=dict(size=15, color=GOLD, family="Poppins"),
+            fixedrange=True,
+        ),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Poppins", color=WHITE),
+        showlegend=False,
+        height=420,
+        margin=dict(l=140, r=140, t=20, b=30),
+        hoverlabel=dict(
+            bgcolor=NAVY, font_color=GOLD, font_size=13,
+            bordercolor=GOLD,
+        ),
+    )
+    st.plotly_chart(fig_bump, use_container_width=True)
+
+    # ================================================================
+    # Chart 2 — Grouped bar: Our Vote % vs. Actual Views
+    # ================================================================
+
+    st.markdown('<div class="section-head">Vote Share vs. Actual Views</div>', unsafe_allow_html=True)
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # Normalize actual views to percentages for fair comparison
+    total_actual = sum(t["actual_views"] for t in TRENDS)
+    names = [f'{t["emoji"]} {t["name"]}' for t in TRENDS]
+    vote_pcts = [votes.get(t["name"], 0) / total_votes * 100 for t in TRENDS]
+    actual_pcts = [t["actual_views"] / total_actual * 100 for t in TRENDS]
+
+    # Sort by actual rank for a clean display
+    order = sorted(range(len(TRENDS)), key=lambda i: TRENDS[i]["actual_rank"])
+    names = [names[i] for i in order]
+    vote_pcts = [vote_pcts[i] for i in order]
+    actual_pcts = [actual_pcts[i] for i in order]
+    ordered_trends = [TRENDS[i] for i in order]
+
+    fig_bar = go.Figure()
+
+    fig_bar.add_trace(go.Bar(
+        y=names, x=vote_pcts, orientation="h",
+        name="Our Votes",
+        marker=dict(color=GOLD, cornerradius=6),
+        text=[f"{v:.0f}%" for v in vote_pcts],
+        textposition="auto",
+        textfont=dict(color=NAVY, size=13, family="Poppins"),
+        hovertemplate="<b>%{y}</b><br>Our vote share: %{x:.1f}%<extra></extra>",
+    ))
+
+    fig_bar.add_trace(go.Bar(
+        y=names, x=actual_pcts, orientation="h",
+        name="Actual Views",
+        marker=dict(color="#60a5fa", cornerradius=6),
+        text=[f"{v:.0f}%" for v in actual_pcts],
+        textposition="auto",
+        textfont=dict(color=NAVY, size=13, family="Poppins"),
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Actual view share: %{x:.1f}%<br>"
+            "Views: %{customdata}"
+            "<extra></extra>"
+        ),
+        customdata=[format_views(ordered_trends[i]["actual_views"]) for i in range(len(ordered_trends))],
+    ))
+
+    fig_bar.update_layout(
+        barmode="group",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Poppins", color=WHITE),
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02,
+            xanchor="center", x=0.5,
+            font=dict(size=14, color=GOLD),
+            bgcolor="rgba(0,0,0,0)",
+        ),
+        xaxis=dict(
+            title="Share (%)", color=WHITE, gridcolor="rgba(255,255,255,0.08)",
+            title_font=dict(color=GOLD), range=[0, max(max(vote_pcts), max(actual_pcts)) * 1.15],
+        ),
+        yaxis=dict(color=WHITE, tickfont=dict(size=13)),
+        height=380,
+        margin=dict(l=10, r=30, t=40, b=40),
+        hoverlabel=dict(bgcolor=NAVY, font_color=GOLD, font_size=13, bordercolor=GOLD),
+    )
+    st.plotly_chart(fig_bar, use_container_width=True)
+
+    # ================================================================
+    # Chart 3 — Actual view counts lollipop
+    # ================================================================
+
+    st.markdown('<div class="section-head">The Real Numbers</div>', unsafe_allow_html=True)
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    actual_sorted = sorted(TRENDS, key=lambda t: t["actual_rank"])
+    lollipop_names = [f'{t["emoji"]} {t["name"]}' for t in actual_sorted]
+    lollipop_views = [t["actual_views"] for t in actual_sorted]
+
+    fig_lollipop = go.Figure()
+
+    # stems
+    for i, (name, views) in enumerate(zip(lollipop_names, lollipop_views)):
+        fig_lollipop.add_trace(go.Scatter(
+            x=[0, views], y=[name, name],
+            mode="lines",
+            line=dict(color="rgba(200,169,81,0.4)", width=3),
+            showlegend=False, hoverinfo="skip",
+        ))
+
+    # dots
+    fig_lollipop.add_trace(go.Scatter(
+        x=lollipop_views, y=lollipop_names,
+        mode="markers+text",
+        marker=dict(size=18, color=GOLD, line=dict(width=2, color=WHITE)),
+        text=[format_views(v) for v in lollipop_views],
+        textposition="middle right",
+        textfont=dict(size=14, color=GOLD_LIGHT, family="Poppins"),
+        showlegend=False,
+        hovertemplate="<b>%{y}</b><br>Views: %{x:,.0f}<extra></extra>",
+    ))
+
+    fig_lollipop.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Poppins", color=WHITE),
+        xaxis=dict(
+            title="Total Views", color=WHITE,
+            gridcolor="rgba(255,255,255,0.08)",
+            title_font=dict(color=GOLD),
+        ),
+        yaxis=dict(color=WHITE, tickfont=dict(size=14), autorange="reversed"),
+        height=350,
+        margin=dict(l=10, r=80, t=10, b=40),
+        hoverlabel=dict(bgcolor=NAVY, font_color=GOLD, font_size=13, bordercolor=GOLD),
+    )
+    st.plotly_chart(fig_lollipop, use_container_width=True)
+
+    # ---- Per-trend accuracy breakdown ----
+    st.markdown('<div class="section-head">Trend-by-Trend Breakdown</div>', unsafe_allow_html=True)
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    breakdown_cols = st.columns(len(TRENDS))
+    for col, trend in zip(breakdown_cols, sorted(TRENDS, key=lambda t: t["actual_rank"])):
+        pred = predicted_ranks[trend["name"]]
+        actual = trend["actual_rank"]
+        diff = abs(pred - actual)
+
+        if diff == 0:
+            badge = '<span class="match-perfect">Exact match!</span>'
+            icon = "🎯"
+        elif diff == 1:
+            badge = '<span class="match-close">Off by 1</span>'
+            icon = "🔥"
+        else:
+            badge = f'<span class="match-off">Off by {diff}</span>'
+            icon = "😮"
+
+        with col:
+            st.markdown(
+                f"""
+                <div class="trend-card" style="padding:1.2rem 0.8rem;">
+                    <div style="font-size:2rem;">{icon}</div>
+                    <div class="trend-name" style="font-size:1.1rem;">{trend["emoji"]} {trend["name"]}</div>
+                    <div style="color:#ffffffbb; font-size:0.85rem; margin:0.4rem 0;">
+                        We said: <b style="color:{GOLD}">#{pred}</b><br>
+                        Actually: <b style="color:#60a5fa">#{actual}</b><br>
+                        Views: <b style="color:{GOLD_LIGHT}">{format_views(trend["actual_views"])}</b>
+                    </div>
+                    {badge}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
 # ---------------------------------------------------------------------------
 # Footer
