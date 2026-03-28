@@ -25,6 +25,7 @@ TRENDS = [
         "emoji": "🎶",
         "image": "Ampiano_09_04_32.png",
         "description": "The South-African born Amapiano dance trend took over every timeline!",
+        "url": "https://www.tiktok.com/@itsracks_/video/7607621336860495122?lang=en&q=ampiano&t=1774705655240",
         "actual_views": 2_800_000_000,
         "actual_rank": 1,
     },
@@ -33,6 +34,7 @@ TRENDS = [
         "emoji": "🥁",
         "image": "Marching Band_09_04_24.png",
         "description": "HBCU marching bands showed out and the internet couldn't stop watching!",
+        "url": "https://www.youtube.com/watch?v=LOZPhxatVG4",
         "actual_views": 890_000_000,
         "actual_rank": 3,
     },
@@ -41,6 +43,7 @@ TRENDS = [
         "emoji": "👢",
         "image": "Step Team_09_04_28.png",
         "description": "Precision stepping went viral — stomp, clap, repeat!",
+        "url": "https://www.tiktok.com/@dssdsorority/video/7610966238109486350?q=Step%20Team&t=1774706027938",
         "actual_views": 650_000_000,
         "actual_rank": 4,
     },
@@ -49,6 +52,7 @@ TRENDS = [
         "emoji": "🎺",
         "image": "Trombone Solo_09_04_16.png",
         "description": "One trombone, millions of views. Brass never sounded so cool!",
+        "url": "https://www.tiktok.com/@zachunter5454/video/7114289315127250222?q=Trumbone%20solo%20hbcu&t=1774706573425",
         "actual_views": 420_000_000,
         "actual_rank": 5,
     },
@@ -57,6 +61,7 @@ TRENDS = [
         "emoji": "💆🏾‍♀️",
         "image": "Wash Day_09_04_19.png",
         "description": "Wash-day routines became the most relatable trend on social media!",
+        "url": "https://www.youtube.com/watch?v=fPHN__p5Pw0",
         "actual_views": 1_200_000_000,
         "actual_rank": 2,
     },
@@ -126,6 +131,11 @@ st.markdown(
     }
     .hero .subtitle { color: #ffffffcc; font-size: 1.15rem; margin-top: 0.25rem; }
     .hero .hosted  { color: #C8A951; font-weight: 600; font-size: 0.95rem; margin-top: 0.3rem; }
+    .hero .hashtags {
+        color: #ffe08a; font-weight: 800; font-size: 1.3rem;
+        margin-top: 0.6rem; letter-spacing: 1px;
+        text-shadow: 0 0 20px rgba(200,169,81,0.3);
+    }
     .divider {
         width: 120px; height: 3px;
         background: linear-gradient(90deg, transparent, #C8A951, transparent);
@@ -151,6 +161,16 @@ st.markdown(
         width: 160px; height: 160px; margin: 1rem auto 0;
         border-radius: 12px; border: 2px solid #C8A951;
         background: #fff; padding: 6px;
+    }
+    .trend-card .watch-link {
+        display: inline-block; margin-top: 0.7rem;
+        color: #ffe08a; font-weight: 700; font-size: 0.95rem;
+        text-decoration: none; padding: 0.35rem 1rem;
+        border: 2px solid #C8A951; border-radius: 50px;
+        transition: background 0.2s, color 0.2s;
+    }
+    .trend-card .watch-link:hover {
+        background: #C8A951; color: #00205B;
     }
 
     /* buttons */
@@ -237,6 +257,7 @@ st.markdown(
         <h1>BLACK GIRL STEM SUMMIT</h1>
         <div class="subtitle">Which viral trend hit the hardest? Cast your vote!</div>
         <div class="hosted">Hosted at Meharry Medical College &nbsp;|&nbsp; Nashville, TN</div>
+        <div class="hashtags">#BGISS2026 &nbsp;&nbsp; #MMCSTEAMSUMMIT</div>
     </div>
     <div class="divider"></div>
     """,
@@ -264,6 +285,7 @@ cols = st.columns(len(TRENDS), gap="large")
 for col, trend in zip(cols, TRENDS):
     with col:
         b64 = img_to_base64(trend["image"])
+        platform = "TikTok" if "tiktok.com" in trend["url"] else "YouTube"
         st.markdown(
             f"""
             <div class="trend-card">
@@ -271,6 +293,10 @@ for col, trend in zip(cols, TRENDS):
                 <div class="trend-name">{trend["name"]}</div>
                 <div class="trend-desc">{trend["description"]}</div>
                 <img class="qr" src="data:image/png;base64,{b64}" alt="{trend['name']} QR code" />
+                <br>
+                <a class="watch-link" href="{trend['url']}" target="_blank">
+                    ▶ Watch on {platform}
+                </a>
             </div>
             """,
             unsafe_allow_html=True,
@@ -601,7 +627,8 @@ st.markdown(
     <div class="footer">
         Black Girl STEM Summit {datetime.now().year} &nbsp;·&nbsp;
         <a href="#">Meharry Medical College</a> &nbsp;·&nbsp;
-        Scan the QR codes to watch each trend!
+        #BGISS2026 &nbsp;·&nbsp; #MMCSTEAMSUMMIT &nbsp;·&nbsp;
+        Scan the QR codes or tap the links to watch each trend!
     </div>
     """,
     unsafe_allow_html=True,
